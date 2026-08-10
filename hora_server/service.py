@@ -77,24 +77,28 @@ class PanchangaService:
         timezone_resolver: TimezoneResolver,
         default_ayanamsa: str = "lahiri",
         registry: LocationRegistry | None = None,
+        default_latitude: float = 12.9716,
+        default_longitude: float = 77.5946,
     ) -> None:
         self.engine = engine
         self.solar = solar
         self.timezone_resolver = timezone_resolver
         self.default_ayanamsa = default_ayanamsa
         self.registry = registry
+        self.default_latitude = default_latitude
+        self.default_longitude = default_longitude
 
     @staticmethod
-    def _number(
-        query: Mapping[str, str], name: str, minimum: float, maximum: float
+    def _number_or_default(
+        query: Mapping[str, str],
+        name: str,
+        minimum: float,
+        maximum: float,
+        default: float,
     ) -> float:
         raw = query.get(name)
-        if raw is None or not raw.strip():
-            raise ApiError(
-                f"{name} is required",
-                code="missing_parameter",
-                details={"parameter": name},
-            )
+        if raw is None or not raw.strip() or raw.strip().lower() in {"null", "undefined"}:
+            return default
         try:
             value = float(raw)
         except ValueError as exc:
@@ -141,8 +145,12 @@ class PanchangaService:
                 )
 
         if not location_resolved:
-            latitude = round(self._number(query, "lat", -90, 90), 4)
-            longitude = round(self._number(query, "lon", -180, 180), 4)
+            latitude = round(
+                self._number_or_default(query, "lat", -90, 90, self.default_latitude), 4
+            )
+            longitude = round(
+                self._number_or_default(query, "lon", -180, 180, self.default_longitude), 4
+            )
             timezone_str = query.get("timezone")
 
         timezone = self.timezone_resolver.resolve(

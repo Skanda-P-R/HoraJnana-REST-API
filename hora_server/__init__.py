@@ -55,6 +55,8 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
         TimezoneResolver(),
         default_ayanamsa=app.config["DEFAULT_AYANAMSA"],
         registry=registry,
+        default_latitude=float(app.config.get("DEFAULT_LATITUDE", 12.9716)),
+        default_longitude=float(app.config.get("DEFAULT_LONGITUDE", 77.5946)),
     )
     app.extensions["panchanga_service"] = service
 

@@ -15,6 +15,8 @@ def _as_bool(value: str | None, default: bool = False) -> bool:
 class Config:
     _BUNDLED_EPHEMERIS_PATH = str(Path(__file__).resolve().parent / "ephe")
     DEFAULT_AYANAMSA = os.getenv("DEFAULT_AYANAMSA", "lahiri")
+    DEFAULT_LATITUDE = float(os.getenv("DEFAULT_LATITUDE", "12.9716"))
+    DEFAULT_LONGITUDE = float(os.getenv("DEFAULT_LONGITUDE", "77.5946"))
     EPHEMERIS_PATH = os.getenv("SE_EPHEMERIS_PATH", _BUNDLED_EPHEMERIS_PATH)
     STRICT_SWISS_EPHEMERIS = _as_bool(
         os.getenv("SWISS_EPHEMERIS_STRICT"), default=True
