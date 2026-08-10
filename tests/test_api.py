@@ -165,11 +165,19 @@ def test_pre_sunrise_uses_previous_vedic_weekday(client):
     assert data["hora"]["period"] == "night"
 
 
-def test_missing_and_invalid_parameters_have_stable_errors(client):
-    missing = client.get("/api/v1/all?lon=77")
-    assert missing.status_code == 400
-    assert missing.get_json()["error"]["code"] == "missing_parameter"
+def test_missing_lat_lon_defaults_to_bengaluru(client):
+    for endpoint in ("day", "panchanga", "muhurta", "hora"):
+        res = client.get(f"/api/v1/{endpoint}?lang=en")
+        assert res.status_code == 200
+        data = res.get_json()
+        assert "timezone" in data or "meta" in data or "panchanga" in data
 
+    res_null = client.get("/api/v1/all?lat=null&lon=null")
+    assert res_null.status_code == 200
+    assert res_null.get_json()["timezone"] == "Asia/Kolkata"
+
+
+def test_invalid_parameters_have_stable_errors(client):
     invalid = client.get("/api/v1/all?lat=91&lon=77")
     assert invalid.status_code == 400
     assert invalid.get_json()["error"]["code"] == "invalid_parameter"

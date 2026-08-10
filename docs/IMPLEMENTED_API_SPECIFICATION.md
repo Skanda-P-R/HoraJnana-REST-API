@@ -249,8 +249,8 @@ Every endpoint under /api/v1 accepts:
 
 | Parameter | Required | Contract |
 |---|---:|---|
-| lat | Yes | Finite WGS84 latitude from -90 through 90 (required only if `location` is absent) |
-| lon | Yes | Finite WGS84 longitude from -180 through 180 (required only if `location` is absent) |
+| lat | No | Finite WGS84 latitude from -90 through 90; defaults to Bengaluru (12.9716) if absent/null |
+| lon | No | Finite WGS84 longitude from -180 through 180; defaults to Bengaluru (77.5946) if absent/null |
 | location | No | Case-insensitive name of a saved location or favorite city from `locations.json` |
 | datetime | No | ISO-8601 date or timestamp; defaults to current time |
 | date | No | Alias for `datetime`. Combined with `time` if both are specified; otherwise defaults to local noon of that date (e.g. `date=2026-07-20`) |
