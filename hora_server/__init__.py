@@ -9,6 +9,7 @@ from typing import Any
 
 import click
 from flask import Flask, g, jsonify, request
+from flask_cors import CORS
 
 from hora_server.api import register_api
 from hora_server.astronomy import EphemerisEngine, SolarCalculator
@@ -23,6 +24,21 @@ from hora_server.utils.timezone import TimezoneResolver
 
 def create_app(config: dict[str, Any] | None = None) -> Flask:
     app = Flask(__name__)
+
+    CORS(app, resources={
+        r"/api/*": {
+            "origins": [
+                "https://skanda-p-r.github.io",
+                "http://localhost:3000",
+                "http://127.0.0.1:5500",
+                "http://localhost:8080"
+            ],
+            "methods": ["GET", "POST", "DELETE", "OPTIONS"],
+            "allow_headers": ["Authorization", "Content-Type"],
+            "max_age": 86400
+        }
+    })
+
     app.config.from_object(Config)
     if config:
         app.config.update(config)
