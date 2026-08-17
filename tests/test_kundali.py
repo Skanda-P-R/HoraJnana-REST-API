@@ -65,6 +65,9 @@ def test_kundali_reference_schema_and_positions(client, bengaluru_query):
         "yogi_avayogi",
         "panchanga",
         "panchanga_details",
+        "atmakaraka",
+        "darakaraka",
+        "chara_karakas",
     }
     assert data["date"] == "2026-07-08"
     assert data["timezone"] == "Asia/Kolkata"
@@ -104,8 +107,8 @@ def test_kundali_reference_schema_and_positions(client, bengaluru_query):
         "Jupiter": ("Cancer", 11, 97.5019, False),
         "Venus": ("Leo", 12, 124.1491, False),
         "Saturn": ("Pisces", 7, 350.2275, False),
-        "Rahu": ("Aquarius", 6, 307.9721, True),
-        "Ketu": ("Leo", 12, 127.9721, True),
+        "Rahu": ("Aquarius", 6, 307.9721, False),
+        "Ketu": ("Leo", 12, 127.9721, False),
     }
     for name, (rasi, house, longitude, retrograde) in expected.items():
         planet = _planet(data, name)
@@ -131,6 +134,8 @@ def test_rahu_and_ketu_are_opposite_points(client, bengaluru_query):
     assert ketu["degree_in_rasi"] == pytest.approx(
         rahu["degree_in_rasi"], abs=0.0001
     )
+    assert rahu["retrograde"] is False
+    assert ketu["retrograde"] is False
 
 
 def test_kundali_chart_png_and_svg_render(client, bengaluru_query):
@@ -152,7 +157,9 @@ def test_kundali_chart_png_and_svg_render(client, bengaluru_query):
     assert svg.content_type.startswith("image/svg+xml")
     assert b"<svg" in svg.data
     assert b"AS" in svg.data
-    assert b"Ra(R)" in svg.data
+    assert b"Ra" in svg.data
+    assert b"Ra(R)" not in svg.data
+    assert b"Me(R)" in svg.data
     assert b"Transit Kundali" in svg.data
     assert b"2026-07-08" in svg.data
     assert b"12:00:00 +0530" in svg.data
@@ -168,7 +175,9 @@ def test_kundali_chart_supports_kannada_language(
     text = svg.data.decode()
     assert "ಗೋಚಾರ ಕುಂಡಲಿ" in text
     assert "ಲಗ್ನ" in text
-    assert "ರಾಹು(R)" in text
+    assert "ರಾಹು" in text
+    assert "ರಾಹು(R)" not in text
+    assert "ಬುಧ(R)" in text
     assert "ಸೂರ್ಯ" in text
     assert "Transit Kundali" not in text
     assert "AS" not in text

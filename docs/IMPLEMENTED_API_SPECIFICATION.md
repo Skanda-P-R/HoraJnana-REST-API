@@ -485,8 +485,9 @@ one rashi at a time.
 The planets array contains Sun, Moon, Mars, Mercury, Jupiter, Venus, Saturn,
 Rahu, and Ketu. Each item contains planet, symbol, longitude, degree_in_rasi,
 rasi, house, and retrograde. Rahu uses the Swiss mean lunar node. Ketu is
-returned as the exact opposite point from Rahu and inherits the node's
-retrograde flag.
+returned as the exact opposite point from Rahu. In accordance with traditional
+Vedic astrology, Rahu and Ketu are not marked with a retrograde flag as their
+natural motion is already retrograde.
 
 The response also contains `yogi_avayogi` containing sensitive points and rulers:
 - `yogi_planet`: Vimshottari ruler of the Nakshatra containing the Yogi Point ($(\text{Sun} + \text{Moon} + 93^\circ 20') \pmod{360^\circ}$).
@@ -494,6 +495,11 @@ The response also contains `yogi_avayogi` containing sensitive points and rulers
 - `avayogi_planet`: Vimshottari ruler of the Nakshatra containing the Avayogi Point ($(\text{Yogi Point} + 186^\circ 40') \pmod{360^\circ}$).
 - `duplicate_avayogi`: Ruler of the Zodiac Sign (Rasi) containing the Avayogi Point.
 - `yogi_point` and `avayogi_point`: Detailed breakdown including `longitude`, `degree_in_rasi`, `rasi`, `rasi_number`, `rasi_lord`, `nakshatra`, `nakshatra_number`, `nakshatra_lord`, `pada`, and `house` relative to Lagna.
+
+The response also contains **Chara Karakas (Variable Significators)** based on the 7-Karaka (Sapta Chara Karaka) Parashari/Jaimini standard:
+- `atmakaraka`: Complete details of the planet with the highest traversed degree in its sign ($0^\circ-30^\circ$), governing the Soul, Self, highest life destiny, and Karakamsa (Navamsha D9 sign).
+- `darakaraka`: Complete details of the planet with the lowest traversed degree in its sign, governing Spouse, Marriage, and Partnerships.
+- `chara_karakas`: Full ordered array of all 7 Karakas sorted descending by degree (`Atmakaraka`, `Amatyakaraka`, `Bhratrukaraka`, `Matrukaraka`, `Putrakaraka`, `Gnatikaraka`, `Darakaraka`). Each item contains `rank`, `karaka`, `karaka_code`, `planet`, `symbol`, `degree_in_rasi`, `longitude`, `rasi`, `rasi_number`, `rasi_lord`, `house`, `nakshatra`, `nakshatra_number`, `nakshatra_lord`, `pada`, `navamsha_rasi`, `navamsha_rasi_number`, `retrograde`, and `signification`.
 
 The response additionally includes full Panchanga elements for that date and time directly:
 - `panchanga`: Summary object containing `tithi`, `nakshatra`, `yoga`, `karana`, `vara`, `vara_sanskrit`, `samvatsara`, `ayana`, `rutu`, `masa`, and `paksha`.
@@ -840,9 +846,8 @@ template. The operator must supply the real hostname and certificates.
 
 The as-built validation baseline is:
 
-- 98 passing tests;
-
-- 97 percent statement coverage;
+- 102 passing tests;
+- 94 percent statement coverage;
 - successful wheel and source-distribution build;
 - all six ephemeris files present in the wheel;
 - all Kannada fonts used for PNG rendering are present;

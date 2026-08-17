@@ -10,6 +10,8 @@ import swisseph as swe
 
 from hora_server.astronomy.ephemeris import Ayanamsa, EphemerisEngine
 from hora_server.astrology.constants import (
+    CHARA_KARAKA_NAMES,
+    CHARA_KARAKA_PLANETS,
     DASHA_LORDS,
     ENGLISH_RASIS,
     NAKSHATRAS,
@@ -84,11 +86,42 @@ class YogiAvayogi:
 
 
 @dataclass(frozen=True)
+class CharaKarakaDetails:
+    rank: int
+    karaka: str
+    karaka_code: str
+    planet: str
+    symbol: str
+    degree_in_rasi: float
+    longitude: float
+    rasi: str
+    rasi_number: int
+    rasi_lord: str
+    house: int
+    nakshatra: str
+    nakshatra_number: int
+    nakshatra_lord: str
+    pada: int
+    navamsha_rasi: str
+    navamsha_rasi_number: int
+    retrograde: bool
+    signification: str
+
+
+@dataclass(frozen=True)
+class CharaKarakaReport:
+    atmakaraka: CharaKarakaDetails
+    darakaraka: CharaKarakaDetails
+    karakas: tuple[CharaKarakaDetails, ...]
+
+
+@dataclass(frozen=True)
 class Kundali:
     lagna: KundaliLagna
     houses: tuple[KundaliHouse, ...]
     planets: tuple[KundaliPlanet, ...]
     yogi_avayogi: YogiAvayogi | None = None
+    chara_karakas: CharaKarakaReport | None = None
 
 
 def _rasi_number(longitude: float) -> int:
@@ -115,6 +148,7 @@ def _planet(
     lagna_number: int,
 ) -> KundaliPlanet:
     rasi_number = _rasi_number(longitude)
+    is_retrograde = speed_longitude < 0 if name not in ("Rahu", "Ketu") else False
     return KundaliPlanet(
         planet=name,
         symbol=symbol,
@@ -123,7 +157,7 @@ def _planet(
         rasi=_rasi_name(rasi_number),
         rasi_number=rasi_number,
         house=_house_for_rasi(rasi_number, lagna_number),
-        retrograde=speed_longitude < 0,
+        retrograde=is_retrograde,
     )
 
 
@@ -193,6 +227,70 @@ def calculate_yogi_avayogi(
     )
 
 
+def _navamsha_rasi_number(longitude: float) -> int:
+    """Calculate the Navamsha (D9) Rasi number (1-12) for a given sidereal longitude."""
+    # 108 navamsha divisions in 360 degrees (each is exactly 3°20' = 10/3 degrees)
+    nav_index = int(((longitude % 360.0) * 108.0 / 360.0) + 1e-9)
+    return (nav_index % 12) + 1
+
+
+def calculate_chara_karakas(
+    planets: tuple[KundaliPlanet, ...],
+    lagna_number: int,
+) -> CharaKarakaReport:
+    """Calculate the 7 Chara Karakas (Sapta Chara Karakas) from planetary positions."""
+    physical_planets = [p for p in planets if p.planet in CHARA_KARAKA_PLANETS]
+    physical_planets.sort(
+        key=lambda p: (round(p.degree_in_rasi, 8), p.longitude),
+        reverse=True,
+    )
+
+    nak_span = 360.0 / 27.0
+    pada_span = nak_span / 4.0
+
+    karaka_details_list: list[CharaKarakaDetails] = []
+    for rank, (planet, (k_name, k_code, k_sig_en, _)) in enumerate(
+        zip(physical_planets, CHARA_KARAKA_NAMES, strict=True),
+        start=1,
+    ):
+        nak_idx = int(planet.longitude // nak_span) % 27
+        pada = int((planet.longitude % nak_span) // pada_span) + 1
+        nak_lord = DASHA_LORDS[nak_idx % 9]
+        rasi_lord = RASI_LORDS[planet.rasi_number - 1]
+        nav_rasi_num = _navamsha_rasi_number(planet.longitude)
+        nav_rasi_name = _rasi_name(nav_rasi_num)
+
+        karaka_details_list.append(
+            CharaKarakaDetails(
+                rank=rank,
+                karaka=k_name,
+                karaka_code=k_code,
+                planet=planet.planet,
+                symbol=planet.symbol,
+                degree_in_rasi=planet.degree_in_rasi,
+                longitude=planet.longitude,
+                rasi=planet.rasi,
+                rasi_number=planet.rasi_number,
+                rasi_lord=rasi_lord,
+                house=planet.house,
+                nakshatra=NAKSHATRAS[nak_idx],
+                nakshatra_number=nak_idx + 1,
+                nakshatra_lord=nak_lord,
+                pada=pada,
+                navamsha_rasi=nav_rasi_name,
+                navamsha_rasi_number=nav_rasi_num,
+                retrograde=planet.retrograde,
+                signification=k_sig_en,
+            )
+        )
+
+    return CharaKarakaReport(
+        atmakaraka=karaka_details_list[0],
+        darakaraka=karaka_details_list[-1],
+        karakas=tuple(karaka_details_list),
+    )
+
+
 def calculate_kundali(
     instant: datetime,
     latitude: float,
@@ -255,11 +353,13 @@ def calculate_kundali(
     sun_lon = body_positions["Sun"].longitude
     moon_lon = body_positions["Moon"].longitude
     yogi_avayogi = calculate_yogi_avayogi(sun_lon, moon_lon, lagna_number)
+    chara_karakas = calculate_chara_karakas(tuple(planets), lagna_number)
 
     return Kundali(
         lagna=lagna,
         houses=houses,
         planets=tuple(planets),
         yogi_avayogi=yogi_avayogi,
+        chara_karakas=chara_karakas,
     )
 
