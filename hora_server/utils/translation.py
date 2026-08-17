@@ -259,6 +259,24 @@ TRANSLATIONS: dict[str, str] = {
     # Hora Period
     "day": "ಹಗಲು",
     "night": "ರಾತ್ರಿ",
+
+    # Chara Karakas
+    "Atmakaraka": "ಆತ್ಮಕಾರಕ",
+    "Amatyakaraka": "ಅಮಾತ್ಯಕಾರಕ",
+    "Bhratrukaraka": "ಭ್ರಾತೃಕಾರಕ",
+    "Matrukaraka": "ಮಾತೃಕಾರಕ",
+    "Putrakaraka": "ಪುತ್ರಕಾರಕ",
+    "Gnatikaraka": "ಜ್ಞಾತಿಕಾರಕ",
+    "Darakaraka": "ದಾರಕಾರಕ",
+
+    # Chara Karaka Significations
+    "Soul, Self, Physical Constitution, Life Purpose": "ಆತ್ಮ, ಸ್ವಯಂ, ಶಾರೀರಿಕ ರಚನೆ, ಜೀವನ ಉದ್ದೇಶ",
+    "Mind, Intellect, Career, Profession, Status": "ಮನಸ್ಸು, ಬುದ್ಧಿಶಕ್ತಿ, ವೃತ್ತಿ, ಉದ್ಯೋಗ, ಅಂತಸ್ತು",
+    "Siblings, Mentors, Gurus, Courage, Comrades": "ಸಹೋದರರು, ಗುರುಗಳು, ಧೈರ್ಯ, ಮಾರ್ಗದರ್ಶಕರು",
+    "Mother, Domestic Life, Emotional Peace, Real Estate": "ತಾಯಿ, ಗೃಹಜೀವನ, ಭಾವನಾತ್ಮಕ ನೆಮ್ಮದಿ, ಆಸ್ತಿ",
+    "Children, Progeny, Creative Intellect, Past Merits": "ಸಂತಾನ, ಮಕ್ಕಳ ಭಾಗ್ಯ, ಸೃಜನಶೀಲ ಬುದ್ಧಿ, ಪೂರ್ವಪುಣ್ಯ",
+    "Relatives, Obstacles, Friction, Diseases, Competitors": "ಜ್ಞಾತಿಗಳು, ಅಡೆತಡೆಗಳು, ರೋಗ, ಶತ್ರುಗಳು, ಸ್ಪರ್ಧೆ",
+    "Spouse, Life Partner, Marriage, Business Partnerships": "ಪತಿ/ಪತ್ನಿ, ಜೀವನ ಸಂಗಾತಿ, ವೈವಾಹಿಕ ಜೀವನ, ವ್ಯಾಪಾರ ಪಾಲುದಾರಿಕೆ",
 }
 
 

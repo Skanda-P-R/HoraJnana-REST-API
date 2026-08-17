@@ -28,6 +28,7 @@ from hora_server.astrology.hora import (
     remaining_seconds,
 )
 from hora_server.astrology.kundali import (
+    CharaKarakaDetails,
     Kundali,
     KundaliHouse,
     KundaliLagna,
@@ -417,6 +418,30 @@ class PanchangaService:
             "house": point.house,
         }
 
+    @staticmethod
+    def _chara_karaka_item_payload(item: CharaKarakaDetails) -> dict[str, Any]:
+        return {
+            "rank": item.rank,
+            "karaka": item.karaka,
+            "karaka_code": item.karaka_code,
+            "planet": item.planet,
+            "symbol": item.symbol,
+            "degree_in_rasi": round(item.degree_in_rasi, 4),
+            "longitude": round(item.longitude, 4),
+            "rasi": item.rasi,
+            "rasi_number": item.rasi_number,
+            "rasi_lord": item.rasi_lord,
+            "house": item.house,
+            "nakshatra": item.nakshatra,
+            "nakshatra_number": item.nakshatra_number,
+            "nakshatra_lord": item.nakshatra_lord,
+            "pada": item.pada,
+            "navamsha_rasi": item.navamsha_rasi,
+            "navamsha_rasi_number": item.navamsha_rasi_number,
+            "retrograde": item.retrograde,
+            "signification": item.signification,
+        }
+
     def _yogi_avayogi_payload(self, yogi: YogiAvayogi) -> dict[str, Any]:
         return {
             "yogi_planet": yogi.yogi_planet,
@@ -476,6 +501,17 @@ class PanchangaService:
             payload["yogi_avayogi"] = self._yogi_avayogi_payload(
                 kundali.yogi_avayogi
             )
+        if kundali.chara_karakas is not None:
+            payload["atmakaraka"] = self._chara_karaka_item_payload(
+                kundali.chara_karakas.atmakaraka
+            )
+            payload["darakaraka"] = self._chara_karaka_item_payload(
+                kundali.chara_karakas.darakaraka
+            )
+            payload["chara_karakas"] = [
+                self._chara_karaka_item_payload(k)
+                for k in kundali.chara_karakas.karakas
+            ]
         return localize_payload(payload, context.lang)
 
 

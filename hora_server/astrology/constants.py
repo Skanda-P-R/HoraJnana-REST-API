@@ -256,3 +256,18 @@ RASI_LORDS: Final[tuple[str, ...]] = (
 )
 
 
+CHARA_KARAKA_NAMES: Final[tuple[tuple[str, str, str, str], ...]] = (
+    ("Atmakaraka", "AK", "Soul, Self, Physical Constitution, Life Purpose", "ಆತ್ಮ, ಸ್ವಯಂ, ಶಾರೀರಿಕ ರಚನೆ, ಜೀವನ ಉದ್ದೇಶ"),
+    ("Amatyakaraka", "AmK", "Mind, Intellect, Career, Profession, Status", "ಮನಸ್ಸು, ಬುದ್ಧಿಶಕ್ತಿ, ವೃತ್ತಿ, ಉದ್ಯೋಗ, ಅಂತಸ್ತು"),
+    ("Bhratrukaraka", "BK", "Siblings, Mentors, Gurus, Courage, Comrades", "ಸಹೋದರರು, ಗುರುಗಳು, ಧೈರ್ಯ, ಮಾರ್ಗದರ್ಶಕರು"),
+    ("Matrukaraka", "MK", "Mother, Domestic Life, Emotional Peace, Real Estate", "ತಾಯಿ, ಗೃಹಜೀವನ, ಭಾವನಾತ್ಮಕ ನೆಮ್ಮದಿ, ಆಸ್ತಿ"),
+    ("Putrakaraka", "PK", "Children, Progeny, Creative Intellect, Past Merits", "ಸಂತಾನ, ಮಕ್ಕಳ ಭಾಗ್ಯ, ಸೃಜನಶೀಲ ಬುದ್ಧಿ, ಪೂರ್ವಪುಣ್ಯ"),
+    ("Gnatikaraka", "GK", "Relatives, Obstacles, Friction, Diseases, Competitors", "ಜ್ಞಾತಿಗಳು, ಅಡೆತಡೆಗಳು, ರೋಗ, ಶತ್ರುಗಳು, ಸ್ಪರ್ಧೆ"),
+    ("Darakaraka", "DK", "Spouse, Life Partner, Marriage, Business Partnerships", "ಪತಿ/ಪತ್ನಿ, ಜೀವನ ಸಂಗಾತಿ, ವೈವಾಹಿಕ ಜೀವನ, ವ್ಯಾಪಾರ ಪಾಲುದಾರಿಕೆ"),
+)
+
+CHARA_KARAKA_PLANETS: Final[frozenset[str]] = frozenset(
+    {"Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn"}
+)
+
+
