@@ -239,3 +239,20 @@ DASHA_YEARS: Final[dict[str, int]] = {
     "Mercury": 17,
 }
 
+
+RASI_LORDS: Final[tuple[str, ...]] = (
+    "Mars",     # 1: Aries / Mesha
+    "Venus",    # 2: Taurus / Vrishabha
+    "Mercury",  # 3: Gemini / Mithuna
+    "Moon",     # 4: Cancer / Karka
+    "Sun",      # 5: Leo / Simha
+    "Mercury",  # 6: Virgo / Kanya
+    "Venus",    # 7: Libra / Tula
+    "Mars",     # 8: Scorpio / Vrishchika
+    "Jupiter",  # 9: Sagittarius / Dhanu
+    "Saturn",   # 10: Capricorn / Makara
+    "Saturn",   # 11: Aquarius / Kumbha
+    "Jupiter",  # 12: Pisces / Meena
+)
+
+
