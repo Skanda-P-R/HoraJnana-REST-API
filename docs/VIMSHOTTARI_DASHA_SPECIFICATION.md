@@ -129,7 +129,8 @@ Returns the Vimshottari Dasha timeline and details.
     "rasi_number": 11,
     "nakshatra": "Shatabhisha",
     "nakshatra_number": 24,
-    "nakshatra_lord": "Rahu"
+    "nakshatra_lord": "Rahu",
+    "nakshatra_pada": 3
   },
   "dasha_balance": {
     "lord": "Rahu",

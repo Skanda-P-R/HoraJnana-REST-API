@@ -488,6 +488,19 @@ rasi, house, and retrograde. Rahu uses the Swiss mean lunar node. Ketu is
 returned as the exact opposite point from Rahu and inherits the node's
 retrograde flag.
 
+The response also contains `yogi_avayogi` containing sensitive points and rulers:
+- `yogi_planet`: Vimshottari ruler of the Nakshatra containing the Yogi Point ($(\text{Sun} + \text{Moon} + 93^\circ 20') \pmod{360^\circ}$).
+- `duplicate_yogi`: Ruler of the Zodiac Sign (Rasi) containing the Yogi Point (*Sahayogi*).
+- `avayogi_planet`: Vimshottari ruler of the Nakshatra containing the Avayogi Point ($(\text{Yogi Point} + 186^\circ 40') \pmod{360^\circ}$).
+- `duplicate_avayogi`: Ruler of the Zodiac Sign (Rasi) containing the Avayogi Point.
+- `yogi_point` and `avayogi_point`: Detailed breakdown including `longitude`, `degree_in_rasi`, `rasi`, `rasi_number`, `rasi_lord`, `nakshatra`, `nakshatra_number`, `nakshatra_lord`, `pada`, and `house` relative to Lagna.
+
+The response additionally includes full Panchanga elements for that date and time directly:
+- `panchanga`: Summary object containing `tithi`, `nakshatra`, `yoga`, `karana`, `vara`, `vara_sanskrit`, `samvatsara`, `ayana`, `rutu`, `masa`, and `paksha`.
+- `panchanga_details`: Detailed progress, longitudes, pada, and transition timestamps (`ends_at`) for `tithi`, `nakshatra`, `yoga`, and `karana`.
+
+
+
 ### 7.12 GET /api/v1/kundali/chart
 
 Returns a rendered Kundali chart as `image/png`. The default `chart_style` is `south`, and the default `lang` is `en`. The renderer consumes the same Kundali model as the JSON endpoint and performs no astrology calculations.
@@ -827,7 +840,7 @@ template. The operator must supply the real hostname and certificates.
 
 The as-built validation baseline is:
 
-- 94 passing tests;
+- 98 passing tests;
 
 - 97 percent statement coverage;
 - successful wheel and source-distribution build;

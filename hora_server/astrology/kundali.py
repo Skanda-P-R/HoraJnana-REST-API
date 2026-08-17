@@ -9,7 +9,12 @@ from typing import Final
 import swisseph as swe
 
 from hora_server.astronomy.ephemeris import Ayanamsa, EphemerisEngine
-from hora_server.astrology.constants import ENGLISH_RASIS
+from hora_server.astrology.constants import (
+    DASHA_LORDS,
+    ENGLISH_RASIS,
+    NAKSHATRAS,
+    RASI_LORDS,
+)
 
 
 RASI_NAMES: Final[tuple[str, ...]] = ENGLISH_RASIS
@@ -55,10 +60,35 @@ class KundaliHouse:
 
 
 @dataclass(frozen=True)
+class YogiPointDetails:
+    longitude: float
+    degree_in_rasi: float
+    rasi: str
+    rasi_number: int
+    rasi_lord: str
+    nakshatra: str
+    nakshatra_number: int
+    nakshatra_lord: str
+    pada: int
+    house: int
+
+
+@dataclass(frozen=True)
+class YogiAvayogi:
+    yogi_planet: str
+    duplicate_yogi: str
+    avayogi_planet: str
+    duplicate_avayogi: str
+    yogi_point: YogiPointDetails
+    avayogi_point: YogiPointDetails
+
+
+@dataclass(frozen=True)
 class Kundali:
     lagna: KundaliLagna
     houses: tuple[KundaliHouse, ...]
     planets: tuple[KundaliPlanet, ...]
+    yogi_avayogi: YogiAvayogi | None = None
 
 
 def _rasi_number(longitude: float) -> int:
@@ -94,6 +124,72 @@ def _planet(
         rasi_number=rasi_number,
         house=_house_for_rasi(rasi_number, lagna_number),
         retrograde=speed_longitude < 0,
+    )
+
+
+def calculate_yogi_avayogi(
+    sun_longitude: float,
+    moon_longitude: float,
+    lagna_number: int,
+) -> YogiAvayogi:
+    nak_span = 360.0 / 27.0
+    pada_span = nak_span / 4.0
+
+    # 1. Yogi Point (Yoga Sphuta) = (Sun + Moon + 93° 20') % 360
+    # 93° 20' = 93 + 20/60 = 280/3 degrees
+    yogi_longitude = (sun_longitude + moon_longitude + (93.0 + 20.0 / 60.0)) % 360.0
+    yogi_rasi_num = _rasi_number(yogi_longitude)
+    yogi_degree = _degree_in_rasi(yogi_longitude)
+    yogi_nak_idx = int(yogi_longitude // nak_span) % 27
+    yogi_pada = int((yogi_longitude % nak_span) // pada_span) + 1
+    yogi_nak_lord = DASHA_LORDS[yogi_nak_idx % 9]
+    yogi_rasi_lord = RASI_LORDS[yogi_rasi_num - 1]
+    yogi_house = _house_for_rasi(yogi_rasi_num, lagna_number)
+
+    yogi_point = YogiPointDetails(
+        longitude=yogi_longitude,
+        degree_in_rasi=yogi_degree,
+        rasi=_rasi_name(yogi_rasi_num),
+        rasi_number=yogi_rasi_num,
+        rasi_lord=yogi_rasi_lord,
+        nakshatra=NAKSHATRAS[yogi_nak_idx],
+        nakshatra_number=yogi_nak_idx + 1,
+        nakshatra_lord=yogi_nak_lord,
+        pada=yogi_pada,
+        house=yogi_house,
+    )
+
+    # 2. Avayogi Point (Avayoga Sphuta) = (Yogi Point + 186° 40') % 360
+    # 186° 40' = 186 + 40/60 = 560/3 degrees
+    avayogi_longitude = (yogi_longitude + (186.0 + 40.0 / 60.0)) % 360.0
+    avayogi_rasi_num = _rasi_number(avayogi_longitude)
+    avayogi_degree = _degree_in_rasi(avayogi_longitude)
+    avayogi_nak_idx = int(avayogi_longitude // nak_span) % 27
+    avayogi_pada = int((avayogi_longitude % nak_span) // pada_span) + 1
+    avayogi_nak_lord = DASHA_LORDS[avayogi_nak_idx % 9]
+    avayogi_rasi_lord = RASI_LORDS[avayogi_rasi_num - 1]
+    avayogi_house = _house_for_rasi(avayogi_rasi_num, lagna_number)
+
+    avayogi_point = YogiPointDetails(
+        longitude=avayogi_longitude,
+        degree_in_rasi=avayogi_degree,
+        rasi=_rasi_name(avayogi_rasi_num),
+        rasi_number=avayogi_rasi_num,
+        rasi_lord=avayogi_rasi_lord,
+        nakshatra=NAKSHATRAS[avayogi_nak_idx],
+        nakshatra_number=avayogi_nak_idx + 1,
+        nakshatra_lord=avayogi_nak_lord,
+        pada=avayogi_pada,
+        house=avayogi_house,
+    )
+
+    return YogiAvayogi(
+        yogi_planet=yogi_nak_lord,
+        duplicate_yogi=yogi_rasi_lord,
+        avayogi_planet=avayogi_nak_lord,
+        duplicate_avayogi=avayogi_rasi_lord,
+        yogi_point=yogi_point,
+        avayogi_point=avayogi_point,
     )
 
 
@@ -155,4 +251,15 @@ def calculate_kundali(
         )
         for house in range(1, 13)
     )
-    return Kundali(lagna=lagna, houses=houses, planets=tuple(planets))
+
+    sun_lon = body_positions["Sun"].longitude
+    moon_lon = body_positions["Moon"].longitude
+    yogi_avayogi = calculate_yogi_avayogi(sun_lon, moon_lon, lagna_number)
+
+    return Kundali(
+        lagna=lagna,
+        houses=houses,
+        planets=tuple(planets),
+        yogi_avayogi=yogi_avayogi,
+    )
+

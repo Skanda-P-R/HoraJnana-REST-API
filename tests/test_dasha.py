@@ -20,6 +20,7 @@ def test_dasha_calculation_revati():
     assert moon_details.nakshatra == "Revati"
     assert moon_details.nakshatra_number == 27
     assert moon_details.nakshatra_lord == "Mercury"
+    assert moon_details.nakshatra_pada == 4
     assert moon_details.rasi == "Pisces"
     assert moon_details.rasi_number == 12
 
@@ -88,6 +89,7 @@ def test_api_get_dasha_default(client, bengaluru_query):
 
     assert data["moon"]["nakshatra"] == "Revati"
     assert data["moon"]["nakshatra_lord"] == "Mercury"
+    assert data["moon"]["nakshatra_pada"] == 4
 
     assert data["dasha_balance"]["lord"] == "Mercury"
     assert data["active_dasha"]["mahadasha"] == "Mercury"

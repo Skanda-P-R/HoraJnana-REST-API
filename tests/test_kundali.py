@@ -62,10 +62,18 @@ def test_kundali_reference_schema_and_positions(client, bengaluru_query):
         "houses",
         "planets",
         "ayanamsa",
+        "yogi_avayogi",
+        "panchanga",
+        "panchanga_details",
     }
     assert data["date"] == "2026-07-08"
     assert data["timezone"] == "Asia/Kolkata"
     assert data["ayanamsa"] == "Lahiri"
+    assert "tithi" in data["panchanga"]
+    assert "nakshatra" in data["panchanga"]
+    assert "yoga" in data["panchanga"]
+    assert "karana" in data["panchanga"]
+    assert "tithi" in data["panchanga_details"]
 
     assert data["lagna"]["rasi"] == "Virgo"
     assert data["lagna"]["number"] == 6
@@ -255,4 +263,81 @@ def test_kundali_chart_top_labels_are_dynamic(client, bengaluru_query):
         query_string={**bengaluru_query, "chart_style": "north"},
     ).data.decode()
     assert f'>{lagna_num}</text>' in svg_north
+
+
+def test_yogi_and_avayogi_in_transit_kundali(client, bengaluru_query):
+    response = client.get("/api/v1/kundali", query_string=bengaluru_query)
+    assert response.status_code == 200
+    data = response.get_json()
+
+    assert "yogi_avayogi" in data
+    ya = data["yogi_avayogi"]
+
+    # Main rulers
+    assert ya["yogi_planet"] == "Moon"
+    assert ya["duplicate_yogi"] == "Mercury"
+    assert ya["avayogi_planet"] == "Mercury"
+    assert ya["duplicate_avayogi"] == "Jupiter"
+
+    # Yogi Point details
+    yp = ya["yogi_point"]
+    assert yp["rasi"] == "Virgo"
+    assert yp["rasi_number"] == 6
+    assert yp["rasi_lord"] == "Mercury"
+    assert yp["nakshatra"] == "Hasta"
+    assert yp["nakshatra_number"] == 13
+    assert yp["nakshatra_lord"] == "Moon"
+    assert yp["pada"] == 4
+    assert yp["house"] == 1
+    assert yp["longitude"] == pytest.approx(172.9458, abs=0.001)
+    assert yp["degree_in_rasi"] == pytest.approx(22.9458, abs=0.001)
+
+    # Avayogi Point details
+    ap = ya["avayogi_point"]
+    assert ap["rasi"] == "Pisces"
+    assert ap["rasi_number"] == 12
+    assert ap["rasi_lord"] == "Jupiter"
+    assert ap["nakshatra"] == "Revati"
+    assert ap["nakshatra_number"] == 27
+    assert ap["nakshatra_lord"] == "Mercury"
+    assert ap["pada"] == 4
+    assert ap["house"] == 7
+    assert ap["longitude"] == pytest.approx(359.6125, abs=0.001)
+    assert ap["degree_in_rasi"] == pytest.approx(29.6125, abs=0.001)
+
+
+def test_yogi_and_avayogi_in_birth_kundali(client, bengaluru_query):
+    response = client.get("/api/v1/kundali/birth", query_string={**bengaluru_query, "name": "Skanda"})
+    assert response.status_code == 200
+    data = response.get_json()
+
+    assert data["name"] == "Skanda"
+    assert "yogi_avayogi" in data
+    assert data["yogi_avayogi"]["yogi_planet"] == "Moon"
+    assert data["yogi_avayogi"]["duplicate_yogi"] == "Mercury"
+    assert data["yogi_avayogi"]["avayogi_planet"] == "Mercury"
+    assert data["yogi_avayogi"]["duplicate_avayogi"] == "Jupiter"
+
+
+def test_yogi_and_avayogi_kannada_localization(client, bengaluru_query):
+    response = client.get("/api/v1/kundali", query_string={**bengaluru_query, "lang": "kan"})
+    assert response.status_code == 200
+    data = response.get_json()
+
+    ya = data["yogi_avayogi"]
+    assert ya["yogi_planet"] == "ಚಂದ್ರ"
+    assert ya["duplicate_yogi"] == "ಬುಧ"
+    assert ya["avayogi_planet"] == "ಬುಧ"
+    assert ya["duplicate_avayogi"] == "ಗುರು"
+
+    assert ya["yogi_point"]["nakshatra"] == "ಹಸ್ತ"
+    assert ya["yogi_point"]["rasi"] == "ಕನ್ಯಾ"
+    assert ya["yogi_point"]["nakshatra_lord"] == "ಚಂದ್ರ"
+    assert ya["yogi_point"]["rasi_lord"] == "ಬುಧ"
+
+    assert ya["avayogi_point"]["nakshatra"] == "ರೇವತಿ"
+    assert ya["avayogi_point"]["rasi"] == "ಮೀನ"
+    assert ya["avayogi_point"]["nakshatra_lord"] == "ಬುಧ"
+    assert ya["avayogi_point"]["rasi_lord"] == "ಗುರು"
+
 

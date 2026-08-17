@@ -35,6 +35,7 @@ class MoonDetails:
     nakshatra: str
     nakshatra_number: int
     nakshatra_lord: str
+    nakshatra_pada: int
 
 
 @dataclass(frozen=True)
@@ -68,6 +69,9 @@ def calculate_dasha(
     nakshatra_name = NAKSHATRAS[nakshatra_idx]
     nakshatra_num = nakshatra_idx + 1
 
+    pada_width = nakshatra_width / 4.0
+    nakshatra_pada = int((long_360 % nakshatra_width) // pada_width) + 1
+
     lord_idx = nakshatra_idx % 9
     start_lord = DASHA_LORDS[lord_idx]
 
@@ -82,6 +86,7 @@ def calculate_dasha(
         nakshatra=nakshatra_name,
         nakshatra_number=nakshatra_num,
         nakshatra_lord=start_lord,
+        nakshatra_pada=nakshatra_pada,
     )
 
     # 2. Dasha balance

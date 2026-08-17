@@ -7,8 +7,12 @@ calculations. All calculations run locally; clients only consume JSON.
 
 - [Implemented API specification](docs/IMPLEMENTED_API_SPECIFICATION.md) is
   the authoritative contract for version 1.
+- [Yogi & Aviyogi specification](docs/YOGI_AVAYOGI_SPECIFICATION.md)
+  documents Yogi, Aviyogi, and Sahayogi calculations in Transit and Birth Kundali.
 - [Birth Chart and Location specification](docs/BIRTH_CHART_AND_LOCATION_SPECIFICATION.md)
   documents the additive birth chart, any-date Panchanga, and location registry features.
+- [Vimshottari Dasha specification](docs/VIMSHOTTARI_DASHA_SPECIFICATION.md)
+  documents the Vimshottari Dasha calculation rules and multi-level periods.
 - [Session Security specification](docs/SESSION_SECURITY_SPECIFICATION.md)
   documents the passwordless device-bound session security architecture.
 - [Kundali extension specification](docs/KUNDALI_EXTENTION_SPECIFICATION.md)
@@ -183,10 +187,10 @@ civil date before sunrise.
 | `GET /api/v1/muhurta` | Rahu Kalam, Gulika, Yamaganda, and Abhijit intervals |
 | `GET /api/v1/rahu` | Rahu Kalam display plus exact `rahu_kalam_details`, Gulika, and Yamaganda intervals |
 | `GET /api/v1/all` | Compact aggregate intended for Scriptable/mobile clients |
-| `GET /api/v1/kundali` | Current transit Kundali JSON with sidereal lagna, whole-sign houses, planets, Rahu, and Ketu |
+| `GET /api/v1/kundali` | Current transit Kundali JSON with sidereal lagna, whole-sign houses, planets, Rahu, Ketu, and Yogi/Aviyogi sensitive points and rulers |
 | `GET /api/v1/kundali/chart` | Rendered Transit Kundali chart PNG; optional `chart_style=south|north|east` and `lang=en|kan` |
 | `GET /api/v1/kundali/svg` | Rendered Transit Kundali chart SVG; optional `chart_style=south|north|east` and `lang=en|kan` |
-| `GET /api/v1/kundali/birth` | Birth Chart (Janma Kundali) JSON; optional `name` parameter |
+| `GET /api/v1/kundali/birth` | Birth Chart (Janma Kundali) JSON with sidereal lagna, houses, planets, Yogi/Aviyogi points, and optional `name` parameter |
 | `GET /api/v1/kundali/birth/chart` | Rendered Birth Chart PNG with optional `name` drawn in the center |
 | `GET /api/v1/kundali/birth/svg` | Rendered Birth Chart SVG with optional `name` drawn in the center |
 | `GET /api/v1/dasha` | Vimshottari Dasha cycles and timelines (Mahadashas, Antardashas, Pratyantardashas) starting from Moon's longitude; optional `depth=1|2|3` and `year_type=365.25|360` |
@@ -215,6 +219,8 @@ For tropical Sun/Moon longitudes `S` and `M`, and Lahiri sidereal longitudes
 - Pada: `floor((Ms mod (360 / 27)) / (360 / 108)) + 1`
 - Nitya yoga: `floor(((Ss + Ms) mod 360) / (360 / 27))`
 - Rashi: `floor(sidereal_longitude / 30)`
+- Yogi Point (*Yoga Sphuta*): `((Ss + Ms + 93°20') mod 360)`. The Yogi Planet is the Nakshatra lord (Vimshottari); the Duplicate Yogi (*Sahayogi*) is the Rasi lord.
+- Avayogi Point (*Avayoga Sphuta*): `((Yogi_Point + 186°40') mod 360)` (14 nakshatras ahead). The Aviyogi Planet is the Nakshatra lord; the Duplicate Avayogi is the Rasi lord.
 - Masa: Named after the sidereal zodiac sign the Sun enters during the Amanta month (New Moon to New Moon). An intercalary month with no solar transit is prefixed with `Adhika`.
 - Rutu (Season): `floor(masa_index / 2)` (Vasanta, Grishma, Varsha, Sharad, Hemanta, Shishira).
 - Ayana: `Dakshinayana` when Sun sidereal longitude is in `[90, 270)`, otherwise `Uttarayana`.

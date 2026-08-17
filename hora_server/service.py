@@ -32,6 +32,8 @@ from hora_server.astrology.kundali import (
     KundaliHouse,
     KundaliLagna,
     KundaliPlanet,
+    YogiAvayogi,
+    YogiPointDetails,
     calculate_kundali,
 )
 from hora_server.astrology.muhurta import MuhurtaInterval, calculate_muhurta
@@ -400,6 +402,31 @@ class PanchangaService:
             "retrograde": planet.retrograde,
         }
 
+    @staticmethod
+    def _yogi_point_payload(point: YogiPointDetails) -> dict[str, Any]:
+        return {
+            "longitude": round(point.longitude, 4),
+            "degree_in_rasi": round(point.degree_in_rasi, 4),
+            "rasi": point.rasi,
+            "rasi_number": point.rasi_number,
+            "rasi_lord": point.rasi_lord,
+            "nakshatra": point.nakshatra,
+            "nakshatra_number": point.nakshatra_number,
+            "nakshatra_lord": point.nakshatra_lord,
+            "pada": point.pada,
+            "house": point.house,
+        }
+
+    def _yogi_avayogi_payload(self, yogi: YogiAvayogi) -> dict[str, Any]:
+        return {
+            "yogi_planet": yogi.yogi_planet,
+            "duplicate_yogi": yogi.duplicate_yogi,
+            "avayogi_planet": yogi.avayogi_planet,
+            "duplicate_avayogi": yogi.duplicate_avayogi,
+            "yogi_point": self._yogi_point_payload(yogi.yogi_point),
+            "avayogi_point": self._yogi_point_payload(yogi.avayogi_point),
+        }
+
     def _panchanga(
         self,
         context: RequestContext,
@@ -425,7 +452,11 @@ class PanchangaService:
 
     def kundali(self, context: RequestContext) -> dict[str, Any]:
         kundali = self.kundali_model(context)
-        return localize_payload({
+        solar_day = self.solar_day(context)
+        panchanga = self._panchanga(context, solar_day, include_transitions=True)
+        panchanga_payload = self._panchanga_payload(panchanga)
+
+        payload: dict[str, Any] = {
             "date": context.instant.date().isoformat(),
             "datetime": isoformat(context.instant),
             "timezone": context.timezone.key,
@@ -438,7 +469,15 @@ class PanchangaService:
                 for planet in kundali.planets
             ],
             "ayanamsa": context.ayanamsa.display_name,
-        }, context.lang)
+            "panchanga": panchanga_payload["panchanga"],
+            "panchanga_details": panchanga_payload["panchanga_details"],
+        }
+        if kundali.yogi_avayogi is not None:
+            payload["yogi_avayogi"] = self._yogi_avayogi_payload(
+                kundali.yogi_avayogi
+            )
+        return localize_payload(payload, context.lang)
+
 
     def _dasha_period_payload(self, period: Any) -> dict[str, Any]:
         return {
@@ -461,6 +500,7 @@ class PanchangaService:
             "nakshatra": moon.nakshatra,
             "nakshatra_number": moon.nakshatra_number,
             "nakshatra_lord": moon.nakshatra_lord,
+            "nakshatra_pada": moon.nakshatra_pada,
         }
 
     def _dasha_balance_payload(self, balance: Any) -> dict[str, Any]:
