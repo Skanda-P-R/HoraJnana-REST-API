@@ -10,6 +10,7 @@ from .calendar import blueprint as calendar_blueprint
 from .hora import blueprint as hora_blueprint
 from .kundali import blueprint as kundali_blueprint
 from .locations import blueprint as locations_blueprint
+from .matchmaking import blueprint as matchmaking_blueprint
 from .muhurta import blueprint as muhurta_blueprint
 from .panchanga import blueprint as panchanga_blueprint
 
@@ -25,5 +26,6 @@ def register_api(app: Flask) -> None:
         kundali_blueprint,
         locations_blueprint,
         auth_blueprint,
+        matchmaking_blueprint,
     ):
         app.register_blueprint(blueprint, url_prefix=prefix)

@@ -32,7 +32,8 @@ The application provides a stateless JSON REST API for:
 - Rahu Kalam, Gulika Kalam, Yamaganda, and Abhijit Muhurta;
 - current transit Kundali with sidereal ascendant, whole-sign houses,
   classical visible planets, Rahu, and Ketu;
-- Vimshottari Dasha calculation cycles and timelines; and
+- Vimshottari Dasha calculation cycles and timelines;
+- Vedic Kundali Matchmaking (Ashtakoota Guna Milan, 36 Guna points, Doshas, Pariharas, and Manglik / Kuja Dosha analysis); and
 - an aggregate response for mobile, web, and Scriptable clients.
 
 All runtime calculations are local. No network request, database, session
@@ -593,7 +594,66 @@ Allows creating, listing, and deleting favorite cities stored in `instance/locat
   Returns `{"status": "saved", "name": "Bengaluru"}` with HTTP 201.
 - **DELETE /api/v1/favorites/<name>**: Deletes the specified favorite city. Returns `{"status": "deleted", "name": "<name>"}`.
 
-### 7.21 Meta object
+### 7.21 POST /api/v1/matchmaking
+
+Evaluates Vedic Ashtakoota Kundali Matchmaking (**Guna Milan**) compatibility between a Groom and a Bride based on their birth timestamps and geographical coordinates.
+
+Calculates all 8 classical Kootas totaling 36 points:
+1. **Varna** (1 pt)
+2. **Vashya** (2 pts)
+3. **Tara / Dina** (3 pts)
+4. **Yoni** (4 pts)
+5. **Graha Maitri** (5 pts)
+6. **Gana** (6 pts)
+7. **Bhakoot** (7 pts, with canonical Parihara / cancellation rules)
+8. **Nadi** (8 pts, with canonical Parihara / cancellation rules)
+
+Also performs **Manglik / Kuja Dosha** analysis from Lagna and Moon for both charts.
+
+#### Request JSON Schema:
+```json
+{
+  "groom": {
+    "name": "Arjun",
+    "dob": "1995-05-15",
+    "tob": "08:30:00",
+    "pob": "Bengaluru",
+    "lat": 12.9716,
+    "lon": 77.5946,
+    "timezone": "Asia/Kolkata"
+  },
+  "bride": {
+    "name": "Sneha",
+    "dob": "1997-11-20",
+    "tob": "14:15:00",
+    "pob": "Mysuru",
+    "lat": 12.2958,
+    "lon": 76.6394,
+    "timezone": "Asia/Kolkata"
+  },
+  "ayanamsa": "lahiri",
+  "lang": "en",
+  "include_manglik": true
+}
+```
+
+#### Response Structure:
+Returns `groom_info`, `bride_info`, `guna_milan` (total_points, max_points, percentage, result, summary_message), `kootas` dictionary with each koota's obtained points and description, `doshas_summary`, and `manglik_analysis`.
+
+When `lang=kan` is specified, all output classifications, koota names, results, and doshas are localized to Kannada.
+
+### 7.22 GET /api/v1/matchmaking
+
+Query-parameter equivalent of the matchmaking calculation endpoint.
+
+#### Query Parameters:
+- `groom_name`, `groom_dob`, `groom_tob`, `groom_pob` (or `groom_lat`, `groom_lon`, `groom_tz`)
+- `bride_name`, `bride_dob`, `bride_tob`, `bride_pob` (or `bride_lat`, `bride_lon`, `bride_tz`)
+- `ayanamsa` (optional, default: `lahiri`)
+- `lang` (optional: `en` or `kan`)
+- `include_manglik` (optional: `true` or `false`)
+
+### 7.23 Meta object
 
 | Field | Meaning |
 |---|---|
@@ -846,13 +906,13 @@ template. The operator must supply the real hostname and certificates.
 
 The as-built validation baseline is:
 
-- 102 passing tests;
-- 94 percent statement coverage;
+- 115 passing tests;
+- 93 percent statement coverage;
 - successful wheel and source-distribution build;
 - all six ephemeris files present in the wheel;
 - all Kannada fonts used for PNG rendering are present;
 - Gunicorn startup verified;
-- GET /health returned HTTP 200 with ephemeris_ready=true; and
+- GET /health returned HTTP 200 with ephemeris_ready=true;
 - GET /api/v1/all and GET /api/v1/kundali returned HTTP 200 for the Bengaluru
   reference request.
 
@@ -866,6 +926,7 @@ pytest --cov=hora_server --cov-report=term-missing
 The suite covers:
 
 - all documented endpoints and common validation;
+- Vedic Kundali Matchmaking (Ashtakoota 8 Kootas, 36 points, Nadi/Bhakoot/Gana Doshas, Pariharas, and Manglik analysis);
 - Bengaluru on 2026-07-08 at 12:00 IST;
 - Krishna Ashtami, Revati Pada 4, Atiganda, and Kaulava;
 - Hindu sunrise and sunset reference tolerances;

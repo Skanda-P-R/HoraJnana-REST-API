@@ -15,6 +15,8 @@ calculations. All calculations run locally; clients only consume JSON.
   documents the additive birth chart, any-date Panchanga, and location registry features.
 - [Vimshottari Dasha specification](docs/VIMSHOTTARI_DASHA_SPECIFICATION.md)
   documents the Vimshottari Dasha calculation rules and multi-level periods.
+- [Kundali Matchmaking specification](docs/MATCH_MAKING_SPECIFICATION.md)
+  documents the Ashtakoota Guna Milan (36 Gunas), Dosha, Parihara, and Manglik compatibility calculations.
 - [Session Security specification](docs/SESSION_SECURITY_SPECIFICATION.md)
   documents the passwordless device-bound session security architecture.
 - [Kundali extension specification](docs/KUNDALI_EXTENTION_SPECIFICATION.md)
@@ -197,6 +199,8 @@ civil date before sunrise.
 | `GET /api/v1/kundali/birth/svg` | Rendered Birth Chart SVG with optional `name` drawn in the center |
 | `GET /api/v1/dasha` | Vimshottari Dasha cycles and timelines (Mahadashas, Antardashas, Pratyantardashas) starting from Moon's longitude; optional `depth=1|2|3` and `year_type=365.25|360` |
 | `GET /api/v1/dasha/birth` | Birth Vimshottari Dasha timeline starting from Moon's longitude at birth, with active dasha and balance resolved at the current time |
+| `POST /api/v1/matchmaking` | Full Vedic Kundali Matchmaking (Ashtakoota 36 Guna Milan, Doshas, Pariharas, Kuja/Manglik analysis) accepting JSON payload with groom and bride details |
+| `GET /api/v1/matchmaking` | Kundali Matchmaking query parameter endpoint |
 | `GET /api/v1/locations` | List all saved locations |
 | `POST /api/v1/locations` | Save or update a custom location (payload: JSON with `name`, `latitude`, `longitude`, optional `timezone`, `description`) |
 | `DELETE /api/v1/locations/<name>` | Delete a saved location |
@@ -229,6 +233,7 @@ For tropical Sun/Moon longitudes `S` and `M`, and Lahiri sidereal longitudes
 - Ayana: `Dakshinayana` when Sun sidereal longitude is in `[90, 270)`, otherwise `Uttarayana`.
 - Samvatsara (60-year cycle): `(Shaka_Year + 11) % 60`. Shaka Year increments at Ugadi.
 - Vimshottari Dasha: starting dasha lord determined by the Moon's Nakshatra index mod 9 in sequence (Ketu, Venus, Sun, Moon, Mars, Rahu, Jupiter, Saturn, Mercury). Total dasha cycle duration is 120 years. Sub-period durations are calculated proportionally to each planet's cycle years.
+- Ashtakoota Matchmaking (36 Gunas): Evaluates Varna (1 pt), Vashya (2 pts), Tara/Dina (3 pts), Yoni (4 pts), Graha Maitri (5 pts), Gana (6 pts), Bhakoot (7 pts, with Parihara), and Nadi (8 pts, with Parihara). Manglik analysis evaluates Mars placement in houses 1, 2, 4, 7, 8, and 12 from Lagna and Moon for both charts.
 
 Rahu, Gulika, and Yamaganda use weekday-specific eighths of the actual
 sunrise-to-sunset duration. Abhijit is the eighth of 15 equal daylight

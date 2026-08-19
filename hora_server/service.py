@@ -37,6 +37,10 @@ from hora_server.astrology.kundali import (
     YogiPointDetails,
     calculate_kundali,
 )
+from hora_server.astrology.matchmaking import (
+    MatchMakingResult,
+    calculate_match_making,
+)
 from hora_server.astrology.muhurta import MuhurtaInterval, calculate_muhurta
 from hora_server.astrology.dasha import calculate_dasha
 from hora_server.astrology.panchanga import (
@@ -196,6 +200,131 @@ class PanchangaService:
         if lang not in ("en", "kan"):
             lang = "en"
         return RequestContext(latitude, longitude, timezone, instant, ayanamsa, lang)
+
+    def parse_profile_context(
+        self,
+        data: Mapping[str, Any],
+        prefix: str = "",
+        default_ayanamsa: str | None = None,
+        default_lang: str = "en",
+    ) -> tuple[RequestContext, str]:
+        p = f"{prefix}_" if prefix and not prefix.endswith("_") else prefix
+        name = str(
+            data.get(f"{p}name")
+            or (data.get("name") if not p else None)
+            or ("Groom" if "groom" in p.lower() else "Bride")
+        ).strip()
+
+        location_resolved = False
+        latitude = None
+        longitude = None
+        timezone_str = None
+
+        location_name = (
+            data.get(f"{p}pob")
+            or data.get(f"{p}location")
+            or (data.get("pob") if not p else None)
+            or (data.get("location") if not p else None)
+        )
+        if location_name and str(location_name).strip():
+            location_name = str(location_name).strip()
+            if self.registry:
+                resolved_data = self.registry.resolve(location_name)
+                if resolved_data:
+                    latitude = resolved_data["latitude"]
+                    longitude = resolved_data["longitude"]
+                    timezone_str = resolved_data["timezone"]
+                    location_resolved = True
+                else:
+                    raise ApiError(
+                        f"Location '{location_name}' for {prefix or 'profile'} not found in registry",
+                        code="location_not_found",
+                        status_code=404,
+                        details={"location": location_name, "profile": prefix or "profile"},
+                    )
+            else:
+                raise ApiError(
+                    "Location registry is not configured",
+                    code="registry_not_configured",
+                    status_code=500,
+                )
+
+        if not location_resolved:
+            lat_val = data.get(f"{p}lat") or (data.get("lat") if not p else None)
+            lon_val = data.get(f"{p}lon") or (data.get("lon") if not p else None)
+
+            lat_query = {f"{p}lat": str(lat_val)} if lat_val is not None else {}
+            lon_query = {f"{p}lon": str(lon_val)} if lon_val is not None else {}
+
+            latitude = round(
+                self._number_or_default(lat_query, f"{p}lat", -90, 90, self.default_latitude), 4
+            )
+            longitude = round(
+                self._number_or_default(lon_query, f"{p}lon", -180, 180, self.default_longitude), 4
+            )
+            tz_val = (
+                data.get(f"{p}timezone")
+                or data.get(f"{p}tz")
+                or (data.get("timezone") if not p else None)
+                or (data.get("tz") if not p else None)
+            )
+            if tz_val:
+                timezone_str = str(tz_val).strip()
+
+        timezone = self.timezone_resolver.resolve(latitude, longitude, timezone_str)
+
+        # Datetime resolving
+        dt_val = data.get(f"{p}datetime") or (data.get("datetime") if not p else None)
+        if not dt_val:
+            dob = (
+                data.get(f"{p}dob")
+                or data.get(f"{p}date")
+                or (data.get("dob") if not p else None)
+                or (data.get("date") if not p else None)
+            )
+            tob = (
+                data.get(f"{p}tob")
+                or data.get(f"{p}time")
+                or (data.get("tob") if not p else None)
+                or (data.get("time") if not p else None)
+            )
+            if dob:
+                dob_str = str(dob).strip()
+                tob_str = str(tob).strip() if tob else "12:00:00"
+                dt_val = f"{dob_str}T{tob_str}"
+
+        if not dt_val:
+            profile_label = prefix.capitalize() if prefix else "Profile"
+            raise ApiError(
+                f"Missing birth date (dob) for {profile_label}",
+                code="invalid_parameter",
+                status_code=400,
+                details={"profile": prefix or "profile"},
+            )
+
+        instant = parse_iso_datetime(str(dt_val), timezone)
+        if not 1800 <= instant.year <= 2399:
+            profile_label = prefix.capitalize() if prefix else "Profile"
+            raise ApiError(
+                f"{profile_label} birth datetime must fall within the supported range 1800-2399",
+                code="datetime_out_of_range",
+                status_code=422,
+                details={"profile": prefix or "profile", "date": instant.date().isoformat()},
+            )
+
+        req_ayanamsa = (
+            data.get(f"{p}ayanamsa")
+            or data.get("ayanamsa")
+            or data.get("ayanamsha")
+            or default_ayanamsa
+        )
+        ayanamsa = self.engine.resolve_ayanamsa(req_ayanamsa, self.default_ayanamsa)
+        lang = str(data.get("lang") or default_lang).strip().lower()
+        if lang not in ("en", "kan"):
+            lang = "en"
+
+        return RequestContext(latitude, longitude, timezone, instant, ayanamsa, lang), name
+
 
     def solar_day(self, context: RequestContext) -> SolarDay:
         return self.solar.containing_vedic_day(
@@ -779,3 +908,127 @@ class PanchangaService:
         payload["events"] = events
         payload["meta"] = self._meta(snapshot.positions)
         return localize_payload(payload, context.lang)
+
+    def matchmaking(
+        self,
+        groom_context: RequestContext,
+        groom_name: str,
+        bride_context: RequestContext,
+        bride_name: str,
+        include_manglik: bool = True,
+    ) -> dict[str, Any]:
+        groom_kundali = calculate_kundali(
+            groom_context.instant,
+            groom_context.latitude,
+            groom_context.longitude,
+            self.engine,
+            groom_context.ayanamsa,
+        )
+        bride_kundali = calculate_kundali(
+            bride_context.instant,
+            bride_context.latitude,
+            bride_context.longitude,
+            self.engine,
+            bride_context.ayanamsa,
+        )
+
+        groom_loc = f"{groom_context.latitude:.4f}, {groom_context.longitude:.4f}"
+        bride_loc = f"{bride_context.latitude:.4f}, {bride_context.longitude:.4f}"
+
+        res = calculate_match_making(
+            groom_kundali=groom_kundali,
+            bride_kundali=bride_kundali,
+            groom_name=groom_name,
+            bride_name=bride_name,
+            groom_datetime_str=isoformat(groom_context.instant),
+            bride_datetime_str=isoformat(bride_context.instant),
+            groom_location_str=groom_loc,
+            bride_location_str=bride_loc,
+            include_manglik=include_manglik,
+        )
+
+        from hora_server.astrology.constants import DASHA_LORDS
+        g_nak_idx = res.groom_info.nakshatra_number - 1
+        b_nak_idx = res.bride_info.nakshatra_number - 1
+        g_nak_lord = DASHA_LORDS[g_nak_idx % 9]
+        b_nak_lord = DASHA_LORDS[b_nak_idx % 9]
+
+        payload: dict[str, Any] = {
+            "ayanamsa": groom_context.ayanamsa.display_name,
+            "groom_info": {
+                "name": res.groom_info.name,
+                "datetime": res.groom_info.datetime,
+                "location": res.groom_info.location,
+                "moon_rasi": res.groom_info.moon_rasi,
+                "moon_rasi_lord": res.groom_info.moon_rasi_lord,
+                "nakshatra": res.groom_info.nakshatra,
+                "nakshatra_number": res.groom_info.nakshatra_number,
+                "nakshatra_lord": g_nak_lord,
+                "pada": res.groom_info.pada,
+                "varna": res.groom_info.varna,
+                "vashya": res.groom_info.vashya,
+                "yoni": res.groom_info.yoni,
+                "gana": res.groom_info.gana,
+                "nadi": res.groom_info.nadi,
+            },
+            "bride_info": {
+                "name": res.bride_info.name,
+                "datetime": res.bride_info.datetime,
+                "location": res.bride_info.location,
+                "moon_rasi": res.bride_info.moon_rasi,
+                "moon_rasi_lord": res.bride_info.moon_rasi_lord,
+                "nakshatra": res.bride_info.nakshatra,
+                "nakshatra_number": res.bride_info.nakshatra_number,
+                "nakshatra_lord": b_nak_lord,
+                "pada": res.bride_info.pada,
+                "varna": res.bride_info.varna,
+                "vashya": res.bride_info.vashya,
+                "yoni": res.bride_info.yoni,
+                "gana": res.bride_info.gana,
+                "nadi": res.bride_info.nadi,
+            },
+            "guna_milan": {
+                "total_points": res.total_points,
+                "max_points": res.max_points,
+                "percentage": res.percentage,
+                "result": res.result,
+                "is_recommended": res.is_recommended,
+                "summary_message": res.summary_message,
+            },
+            "kootas": {
+                k_name: {
+                    "name": k.name,
+                    "obtained_points": k.obtained_points,
+                    "max_points": k.max_points,
+                    "groom_attribute": k.groom_attribute,
+                    "bride_attribute": k.bride_attribute,
+                    "is_favorable": k.is_favorable,
+                    "dosha": k.dosha,
+                    "parihara_applied": k.parihara_applied,
+                    "description": k.description,
+                }
+                for k_name, k in res.kootas.items()
+            },
+            "doshas_summary": res.doshas_summary,
+        }
+
+        if res.manglik_analysis is not None:
+            payload["manglik_analysis"] = {
+                "groom_manglik": {
+                    "is_manglik": res.manglik_analysis.groom_manglik.is_manglik,
+                    "status": res.manglik_analysis.groom_manglik.status,
+                    "mars_house_lagna": res.manglik_analysis.groom_manglik.mars_house_lagna,
+                    "mars_house_moon": res.manglik_analysis.groom_manglik.mars_house_moon,
+                },
+                "bride_manglik": {
+                    "is_manglik": res.manglik_analysis.bride_manglik.is_manglik,
+                    "status": res.manglik_analysis.bride_manglik.status,
+                    "mars_house_lagna": res.manglik_analysis.bride_manglik.mars_house_lagna,
+                    "mars_house_moon": res.manglik_analysis.bride_manglik.mars_house_moon,
+                },
+                "manglik_compatibility": res.manglik_analysis.manglik_compatibility,
+                "description": res.manglik_analysis.description,
+            }
+
+        return localize_payload(payload, groom_context.lang)
+
