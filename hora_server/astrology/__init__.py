@@ -11,6 +11,7 @@ from .kundali import (
 )
 from .matchmaking import MatchMakingResult, calculate_match_making
 from .muhurta import MuhurtaInterval, calculate_muhurta
+from .pancha_pakshi import PanchaPakshiResult, calculate_pancha_pakshi
 from .panchanga import Panchanga, calculate_panchanga
 
 __all__ = [
@@ -19,6 +20,7 @@ __all__ = [
     "Kundali",
     "MatchMakingResult",
     "MuhurtaInterval",
+    "PanchaPakshiResult",
     "Panchanga",
     "PlanetaryHour",
     "calculate_chara_karakas",
@@ -26,6 +28,7 @@ __all__ = [
     "calculate_kundali",
     "calculate_match_making",
     "calculate_muhurta",
+    "calculate_pancha_pakshi",
     "calculate_panchanga",
     "current_planetary_hour",
     "planetary_hours",

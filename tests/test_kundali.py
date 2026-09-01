@@ -65,6 +65,7 @@ def test_kundali_reference_schema_and_positions(client, bengaluru_query):
         "yogi_avayogi",
         "panchanga",
         "panchanga_details",
+        "pancha_pakshi",
         "atmakaraka",
         "darakaraka",
         "chara_karakas",

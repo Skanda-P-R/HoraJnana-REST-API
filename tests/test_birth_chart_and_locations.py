@@ -60,6 +60,7 @@ def test_birth_chart_endpoints(client, bengaluru_query):
     assert "yogi_avayogi" in data
     assert "panchanga" in data
     assert "panchanga_details" in data
+    assert "pancha_pakshi" in data
 
     # Test PNG rendering endpoint
     response = client.get("/api/v1/kundali/birth/chart", query_string=query)

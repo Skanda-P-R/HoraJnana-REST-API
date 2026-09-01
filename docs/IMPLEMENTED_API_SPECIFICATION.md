@@ -32,6 +32,7 @@ The application provides a stateless JSON REST API for:
 - Rahu Kalam, Gulika Kalam, Yamaganda, and Abhijit Muhurta;
 - current transit Kundali with sidereal ascendant, whole-sign houses,
   classical visible planets, Rahu, and Ketu;
+- Pancha Pakshi (Five Birds) birth bird, elemental associations, and five activity states;
 - Vimshottari Dasha calculation cycles and timelines;
 - Vedic Kundali Matchmaking (Ashtakoota Guna Milan, 36 Guna points, Doshas, Pariharas, and Manglik / Kuja Dosha analysis); and
 - an aggregate response for mobile, web, and Scriptable clients.
@@ -507,6 +508,9 @@ The response additionally includes full Panchanga elements for that date and tim
 - `panchanga`: Summary object containing `tithi`, `nakshatra`, `yoga`, `karana`, `vara`, `vara_sanskrit`, `samvatsara`, `ayana`, `rutu`, `masa`, and `paksha`.
 - `panchanga_details`: Detailed progress, longitudes, pada, and transition timestamps (`ends_at`) for `tithi`, `nakshatra`, `yoga`, and `karana`, with `all` arrays of daily occurrences for `yoga` and `karana`.
 
+The response also provides **Pancha Pakshi (Five Birds)** calculation based on Agathiyar Tamil Siddha astrology:
+- `pancha_pakshi`: Birth bird object containing `bird` (`Vulture`, `Owl`, `Crow`, `Cock`, `Peacock`), `element` (`Earth`, `Water`, `Fire`, `Air`, `Ether`), `nakshatra`, `nakshatra_number`, and `paksha` (`Shukla`, `Krishna`). Full Kannada localization is applied when `lang=kan`.
+
 
 
 ### 7.12 GET /api/v1/kundali/chart
@@ -907,7 +911,7 @@ template. The operator must supply the real hostname and certificates.
 
 The as-built validation baseline is:
 
-- 117 passing tests;
+- 123 passing tests;
 - 91 percent statement coverage;
 - successful wheel and source-distribution build;
 - all six ephemeris files present in the wheel;
@@ -948,6 +952,7 @@ The suite covers:
 - Kundali schema, sidereal ascendant, whole-sign house placement, Rahu/Ketu,
   retrograde status, PNG/SVG rendering, merged chart information panel,
   chart_style validation, and lang=en/lang=kan rendering;
+- Pancha Pakshi 5-bird mapping across all 27 nakshatras and both Shukla/Krishna pakshas (54 permutations), elemental associations, and Kannada localization;
 - 60-second caching, cache expiry, query-string cache separation,
   four-decimal coordinate normalization, Cache-Control headers, and
   60/minute/IP rate limiting; and

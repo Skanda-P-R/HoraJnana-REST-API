@@ -9,6 +9,8 @@ calculations. All calculations run locally; clients only consume JSON.
   the authoritative contract for version 1.
 - [Atmakaraka & Darakaraka specification](docs/ATMAKARAKA_DARAKARAKA_SPECIFICATION.md)
   documents Atmakaraka (AK), Darakaraka (DK), and 7-Chara Karaka calculations in Transit and Birth Kundali.
+- [Pancha Pakshi specification](docs/PANCHA_PAKSHI_SPECIFICATION.md)
+  documents the Pancha Pakshi (Five Birds) system, elemental correlations, and activity states.
 - [Yogi & Aviyogi specification](docs/YOGI_AVAYOGI_SPECIFICATION.md)
   documents Yogi, Aviyogi, and Sahayogi calculations in Transit and Birth Kundali.
 - [Birth Chart and Location specification](docs/BIRTH_CHART_AND_LOCATION_SPECIFICATION.md)
@@ -228,6 +230,7 @@ For tropical Sun/Moon longitudes `S` and `M`, and Lahiri sidereal longitudes
 - Chara Karakas (7-Karaka standard): Sorted descending by traversed degree in sign (`degree_in_rasi` $\in [0^\circ, 30^\circ)$) among Sun, Moon, Mars, Mercury, Jupiter, Venus, Saturn. Rank 1 is **Atmakaraka (AK)** (Soul/Self), Rank 2 is **Amatyakaraka (AmK)** (Career/Intellect), Rank 3 is **Bhratrukaraka (BK)** (Siblings/Guru), Rank 4 is **Matrukaraka (MK)** (Mother), Rank 5 is **Putrakaraka (PK)** (Children/Wisdom), Rank 6 is **Gnatikaraka (GK)** (Obstacles/Relatives), and Rank 7 is **Darakaraka (DK)** (Spouse/Partnerships). The Navamsha sign of Atmakaraka is **Karakamsa**.
 - Yogi Point (*Yoga Sphuta*): `((Ss + Ms + 93°20') mod 360)`. The Yogi Planet is the Nakshatra lord (Vimshottari); the Duplicate Yogi (*Sahayogi*) is the Rasi lord.
 - Avayogi Point (*Avayoga Sphuta*): `((Yogi_Point + 186°40') mod 360)` (14 nakshatras ahead). The Aviyogi Planet is the Nakshatra lord; the Duplicate Avayogi is the Rasi lord.
+- Pancha Pakshi (Five Birds): Determines the birth bird based on the 27 Nakshatras (grouped 5–6–5–6–5) and Paksha. In Shukla Paksha (Waxing), the order is Vulture (Earth), Owl (Water), Crow (Fire), Cock (Air), Peacock (Ether). In Krishna Paksha (Waning), the order is reversed: Peacock, Cock, Crow, Owl, Vulture. Returns traditional names (Tamil & Sanskrit), element, and the 5 activity states (Ruling, Eating, Walking, Sleeping, Dying).
 - Masa: Named after the sidereal zodiac sign the Sun enters during the Amanta month (New Moon to New Moon). An intercalary month with no solar transit is prefixed with `Adhika`.
 - Rutu (Season): `floor(masa_index / 2)` (Vasanta, Grishma, Varsha, Sharad, Hemanta, Shishira).
 - Ayana: `Dakshinayana` when Sun sidereal longitude is in `[90, 270)`, otherwise `Uttarayana`.
