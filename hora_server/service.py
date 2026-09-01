@@ -43,6 +43,10 @@ from hora_server.astrology.matchmaking import (
 )
 from hora_server.astrology.muhurta import MuhurtaInterval, calculate_muhurta
 from hora_server.astrology.dasha import calculate_dasha
+from hora_server.astrology.pancha_pakshi import (
+    PanchaPakshiResult,
+    calculate_pancha_pakshi,
+)
 from hora_server.astrology.panchanga import (
     Limb,
     Panchanga,
@@ -606,11 +610,27 @@ class PanchangaService:
             context.ayanamsa,
         )
 
+    @staticmethod
+    def _pancha_pakshi_payload(result: PanchaPakshiResult) -> dict[str, Any]:
+        return {
+            "bird": result.bird,
+            "element": result.element,
+            "nakshatra": result.nakshatra,
+            "nakshatra_number": result.nakshatra_number,
+            "paksha": result.paksha,
+        }
+
     def kundali(self, context: RequestContext) -> dict[str, Any]:
         kundali = self.kundali_model(context)
         solar_day = self.solar_day(context)
         panchanga = self._panchanga(context, solar_day, include_transitions=True)
         panchanga_payload = self._panchanga_payload(panchanga)
+
+        pancha_pakshi = calculate_pancha_pakshi(
+            nakshatra_number=panchanga.nakshatra.number,
+            nakshatra_name=panchanga.nakshatra.name,
+            paksha=panchanga.paksha,
+        )
 
         payload: dict[str, Any] = {
             "date": context.instant.date().isoformat(),
@@ -627,6 +647,7 @@ class PanchangaService:
             "ayanamsa": context.ayanamsa.display_name,
             "panchanga": panchanga_payload["panchanga"],
             "panchanga_details": panchanga_payload["panchanga_details"],
+            "pancha_pakshi": self._pancha_pakshi_payload(pancha_pakshi),
         }
         if kundali.yogi_avayogi is not None:
             payload["yogi_avayogi"] = self._yogi_avayogi_payload(

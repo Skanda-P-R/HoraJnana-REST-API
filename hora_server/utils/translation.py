@@ -278,6 +278,20 @@ TRANSLATIONS: dict[str, str] = {
     "Relatives, Obstacles, Friction, Diseases, Competitors": "ಜ್ಞಾತಿಗಳು, ಅಡೆತಡೆಗಳು, ರೋಗ, ಶತ್ರುಗಳು, ಸ್ಪರ್ಧೆ",
     "Spouse, Life Partner, Marriage, Business Partnerships": "ಪತಿ/ಪತ್ನಿ, ಜೀವನ ಸಂಗಾತಿ, ವೈವಾಹಿಕ ಜೀವನ, ವ್ಯಾಪಾರ ಪಾಲುದಾರಿಕೆ",
 
+    # Pancha Pakshi (Five Birds)
+    "Vulture": "ಹದ್ದು",
+    "Owl": "ಗೂಬೆ",
+    "Crow": "ಕಾಗೆ",
+    "Cock": "ಹುಂಜ (ಕೋಳಿ)",
+    "Peacock": "ನವಿಲು",
+
+    # Pancha Bhutas (Elements)
+    "Earth": "ಭೂಮಿ (ಪೃಥ್ವಿ)",
+    "Water": "ಜಲ",
+    "Fire": "ಅಗ್ನಿ",
+    "Air": "ವಾಯು",
+    "Ether": "ಆಕಾಶ",
+
     # Ashtakoota Kootas
     "Varna": "ವರ್ಣ",
     "Vashya": "ವಶ್ಯ",
