@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime, time, timedelta
 from math import floor
 from typing import Callable, Final
 
 from hora_server.astronomy.ephemeris import Ayanamsa, EphemerisEngine, Positions
+from hora_server.utils.datetime import isoformat
 
 from .constants import (
     NAKSHATRAS,
@@ -131,12 +132,54 @@ def find_next_transition(
     return upper.astimezone(output_timezone)
 
 
+def calculate_daily_transitions(
+    start_time: datetime,
+    end_time: datetime,
+    kind: str,
+    engine: EphemerisEngine,
+    ayanamsa: Ayanamsa,
+) -> list[dict[str, Any]]:
+    """Collect all limbs of `kind` active between start_time and end_time, with their ends_at."""
+    transitions: list[dict[str, Any]] = []
+    cursor = start_time
+    output_timezone = start_time.tzinfo
+    for _ in range(5):
+        if cursor >= end_time:
+            break
+        idx = phase_index(engine.positions(cursor, ayanamsa), kind)
+        if kind == "yoga":
+            name = YOGAS[idx]
+        elif kind == "karana":
+            name = karana_name(idx)
+        elif kind == "tithi":
+            name = tithi_name(idx)[0]
+        elif kind == "nakshatra":
+            name = NAKSHATRAS[idx]
+        else:
+            raise ValueError(f"Unknown limb kind: {kind}")
+
+        trans = find_next_transition(cursor, kind, engine, ayanamsa)
+        transitions.append(
+            {
+                "name": name,
+                "ends_at": isoformat(trans),
+            }
+        )
+        if trans >= end_time:
+            break
+        after = trans.astimezone(UTC) + timedelta(seconds=2)
+        cursor = after.astimezone(output_timezone)
+    return transitions
+
+
 def calculate_panchanga(
     instant: datetime,
     vedic_weekday: int,
     engine: EphemerisEngine,
     ayanamsa: Ayanamsa,
     include_transitions: bool = True,
+    day_start: datetime | None = None,
+    day_end: datetime | None = None,
 ) -> Panchanga:
     positions = engine.positions(instant, ayanamsa)
     elongation = phase_value(positions, "tithi")
@@ -149,9 +192,21 @@ def calculate_panchanga(
     pada = _index(positions.moon_sidereal % NAKSHATRA_SPAN, PADA_SPAN, 4) + 1
 
     transition: Callable[[str], datetime | None]
+    daily_yogas: list[dict[str, Any]] | None = None
+    daily_karanas: list[dict[str, Any]] | None = None
     if include_transitions:
         transition = lambda kind: find_next_transition(
             instant, kind, engine, ayanamsa
+        )
+        d_start = day_start or datetime.combine(
+            instant.date(), time.min, instant.tzinfo
+        )
+        d_end = day_end or (d_start + timedelta(days=1))
+        daily_yogas = calculate_daily_transitions(
+            d_start, d_end, "yoga", engine, ayanamsa
+        )
+        daily_karanas = calculate_daily_transitions(
+            d_start, d_end, "karana", engine, ayanamsa
         )
     else:
         transition = lambda kind: None
@@ -216,6 +271,7 @@ def calculate_panchanga(
             yoga_value,
             _progress(yoga_value, NAKSHATRA_SPAN),
             transition("yoga"),
+            extra={"all": daily_yogas} if daily_yogas is not None else None,
         ),
         karana=Limb(
             karana_index,
@@ -224,6 +280,7 @@ def calculate_panchanga(
             elongation,
             _progress(elongation, 6),
             transition("karana"),
+            extra={"all": daily_karanas} if daily_karanas is not None else None,
         ),
         vara=WEEKDAY_NAMES[vedic_weekday],
         vara_sanskrit=VARA_NAMES[vedic_weekday],
