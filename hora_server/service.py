@@ -593,6 +593,8 @@ class PanchangaService:
             self.engine,
             context.ayanamsa,
             include_transitions=include_transitions,
+            day_start=solar_day.sunrise,
+            day_end=solar_day.next_sunrise,
         )
 
     def kundali_model(self, context: RequestContext) -> Kundali:

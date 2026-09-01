@@ -414,7 +414,8 @@ The summary contains tithi, nakshatra, yoga, karana, vara, vara_sanskrit, samvat
 Every limb detail contains name, one-based number, progress,
 longitude_degrees, and ends_at. Tithi also contains paksha,
 lunar_day_number (1–30), and paksha_day_number (1–15). Nakshatra also contains
-pada (1–4).
+pada (1–4). Yoga and Karana additionally contain an `all` array containing all
+respective limbs active during the Vedic day, each with `name` and `ends_at`.
 
 The moon object contains rasi, nakshatra, pada, and sidereal_longitude. The sun
 object contains rasi and sidereal_longitude.
@@ -504,7 +505,7 @@ The response also contains **Chara Karakas (Variable Significators)** based on t
 
 The response additionally includes full Panchanga elements for that date and time directly:
 - `panchanga`: Summary object containing `tithi`, `nakshatra`, `yoga`, `karana`, `vara`, `vara_sanskrit`, `samvatsara`, `ayana`, `rutu`, `masa`, and `paksha`.
-- `panchanga_details`: Detailed progress, longitudes, pada, and transition timestamps (`ends_at`) for `tithi`, `nakshatra`, `yoga`, and `karana`.
+- `panchanga_details`: Detailed progress, longitudes, pada, and transition timestamps (`ends_at`) for `tithi`, `nakshatra`, `yoga`, and `karana`, with `all` arrays of daily occurrences for `yoga` and `karana`.
 
 
 
@@ -906,8 +907,8 @@ template. The operator must supply the real hostname and certificates.
 
 The as-built validation baseline is:
 
-- 115 passing tests;
-- 93 percent statement coverage;
+- 117 passing tests;
+- 91 percent statement coverage;
 - successful wheel and source-distribution build;
 - all six ephemeris files present in the wheel;
 - all Kannada fonts used for PNG rendering are present;

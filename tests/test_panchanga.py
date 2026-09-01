@@ -117,3 +117,66 @@ def test_each_engine_restores_its_own_global_ephemeris_path(tmp_path):
         empty.positions(instant, mode)
     assert error.value.code == "ephemeris_unavailable"
     assert good.positions(instant, mode).ephemeris == "swiss"
+
+
+def test_panchanga_details_returns_all_daily_yogas_and_karanas(client, bengaluru_query):
+    response = client.get("/api/v1/panchanga", query_string=bengaluru_query)
+    assert response.status_code == 200
+    data = response.get_json()
+
+    panchanga_details = data["panchanga_details"]
+    assert "all" in panchanga_details["karana"]
+    assert "all" in panchanga_details["yoga"]
+
+    # Check Karanas
+    karanas = panchanga_details["karana"]["all"]
+    assert 2 <= len(karanas) <= 3
+    for item in karanas:
+        assert "name" in item
+        assert "ends_at" in item
+        assert isinstance(item["name"], str) and len(item["name"]) > 0
+        assert datetime.fromisoformat(item["ends_at"]) is not None
+
+    # Check chronological ordering of Karana transitions
+    karana_ends = [datetime.fromisoformat(k["ends_at"]) for k in karanas]
+    assert karana_ends == sorted(karana_ends)
+    assert len(set(karana_ends)) == len(karana_ends)
+
+    # Check Yogas
+    yogas = panchanga_details["yoga"]["all"]
+    assert 1 <= len(yogas) <= 3
+    for item in yogas:
+        assert "name" in item
+        assert "ends_at" in item
+        assert isinstance(item["name"], str) and len(item["name"]) > 0
+        assert datetime.fromisoformat(item["ends_at"]) is not None
+
+    # Check chronological ordering of Yoga transitions
+    yoga_ends = [datetime.fromisoformat(y["ends_at"]) for y in yogas]
+    assert yoga_ends == sorted(yoga_ends)
+    assert len(set(yoga_ends)) == len(yoga_ends)
+
+    # Ensure tithi and nakshatra do not have 'all'
+    assert "all" not in panchanga_details["tithi"]
+    assert "all" not in panchanga_details["nakshatra"]
+
+
+def test_daily_yogas_and_karanas_kannada_localization(client, bengaluru_query):
+    query = {**bengaluru_query, "lang": "kan"}
+    response = client.get("/api/v1/panchanga", query_string=query)
+    assert response.status_code == 200
+    data = response.get_json()
+
+    karanas = data["panchanga_details"]["karana"]["all"]
+    yogas = data["panchanga_details"]["yoga"]["all"]
+
+    for item in karanas:
+        # Verify name is non-ASCII Kannada
+        assert any(ord(c) > 127 for c in item["name"])
+        # Verify timestamp remains a valid ISO format
+        assert datetime.fromisoformat(item["ends_at"]) is not None
+
+    for item in yogas:
+        assert any(ord(c) > 127 for c in item["name"])
+        assert datetime.fromisoformat(item["ends_at"]) is not None
+
